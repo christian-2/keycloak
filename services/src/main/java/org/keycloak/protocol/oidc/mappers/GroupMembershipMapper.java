@@ -53,6 +53,14 @@ public class GroupMembershipMapper extends AbstractOIDCProtocolMapper implements
         property1.setHelpText("Include full path to group i.e. /top/level1/level2, false will just specify the group name");
         configProperties.add(property1);
 
+	ProviderConfigProperty property2 = new ProviderConfigProperty();
+	property2 = new ProviderConfigProperty();
+        property2.setName("suffix");
+        property2.setLabel("Suffix");
+        property2.setType(ProviderConfigProperty.STRING_TYPE);
+        property2.setHelpText("Suffix to add to the claim.");
+        configProperties.add(property2);
+
         OIDCAttributeMapperHelper.addIncludeInTokensConfig(configProperties, GroupMembershipMapper.class);
     }
 
@@ -80,7 +88,7 @@ public class GroupMembershipMapper extends AbstractOIDCProtocolMapper implements
 
     @Override
     public String getHelpText() {
-        return "Map user group membership";
+        return "Map user group membership; each group name may include a configurable suffix.";
     }
 
     public static boolean useFullPath(ProtocolMapperModel mappingModel) {
@@ -97,7 +105,10 @@ public class GroupMembershipMapper extends AbstractOIDCProtocolMapper implements
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession) {
         Function<GroupModel, String> toGroupRepresentation = useFullPath(mappingModel) ?
                 ModelToRepresentation::buildGroupPath : GroupModel::getName;
-        List<String> membership = userSession.getUser().getGroupsStream().map(toGroupRepresentation).collect(Collectors.toList());
+        List<String> membership = userSession.getUser().getGroupsStream().
+		map(toGroupRepresentation).
+		map(s -> s + mappingModel.getConfig().get("suffix")).
+		collect(Collectors.toList());
 
         // force multivalued as the attribute is not defined for this mapper
         mappingModel.getConfig().put(ProtocolMapperUtils.MULTIVALUED, "true");

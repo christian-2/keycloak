@@ -46,6 +46,14 @@ public class UserPropertyMapper extends AbstractOIDCProtocolMapper implements OI
         property.setType(ProviderConfigProperty.STRING_TYPE);
         property.setHelpText(ProtocolMapperUtils.USER_MODEL_PROPERTY_HELP_TEXT);
         configProperties.add(property);
+
+	ProviderConfigProperty property2 = new ProviderConfigProperty();
+	property2.setName("suffix");
+	property2.setLabel("Suffix");
+	property2.setType(ProviderConfigProperty.STRING_TYPE);
+	property2.setHelpText("Suffix to add to the claim.");
+	configProperties.add(property2);
+
         OIDCAttributeMapperHelper.addAttributeConfig(configProperties, UserPropertyMapper.class);
     }
 
@@ -73,7 +81,7 @@ public class UserPropertyMapper extends AbstractOIDCProtocolMapper implements OI
 
     @Override
     public String getHelpText() {
-        return "Map a built in user property (email, firstName, lastName) to a token claim.";
+        return "Map a built in user property (email, firstName, lastName) plus a configurable suffix to a token claim.";
     }
 
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession) {
@@ -82,7 +90,7 @@ public class UserPropertyMapper extends AbstractOIDCProtocolMapper implements OI
 
         if (propertyName == null || propertyName.trim().isEmpty()) return;
 
-        String propertyValue = ProtocolMapperUtils.getUserModelValue(user, propertyName);
+        String propertyValue = ProtocolMapperUtils.getUserModelValue(user, propertyName) + mappingModel.getConfig().get("suffix");
         OIDCAttributeMapperHelper.mapClaim(token, mappingModel, propertyValue);
     }
 
